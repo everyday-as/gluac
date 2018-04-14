@@ -17,10 +17,9 @@ solution "gluac"
 		kind	"ConsoleApp"
 		targetname "gluac"
 		
-		flags { "NoPCH" }
+		flags { "NoPCH", "StaticRuntime" }
 		symbols "On"
 		editandcontinue "Off"
-		staticruntime "On"
 		vectorextensions "SSE"
 
 		links "bootil_static"
@@ -52,10 +51,9 @@ solution "gluac"
 		kind "StaticLib"
 		targetname( "bootil_static" )
 
-		flags { "NoPCH" }
+		flags { "NoPCH", "StaticRuntime" }
 		symbols "On"
 		editandcontinue "Off"
-		staticruntime "On"
 		vectorextensions "SSE"
 
 		includedirs { "Bootil/include/", "Bootil/src/3rdParty/" }
