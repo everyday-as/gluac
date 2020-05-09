@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/gmodstore/gluac.svg?branch=master)](https://travis-ci.org/gmodstore/gluac)
+[![Build Status](https://travis-ci.org/everyday-as/gluac.svg?branch=master)](https://travis-ci.org/everyday-as/gluac)
 
 ## Synopsis
 
