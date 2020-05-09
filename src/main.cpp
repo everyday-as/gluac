@@ -27,7 +27,7 @@ typedef int(__cdecl *lj_bcwrite_t)(lua_State *L, void *gcproto, lua_Writer, void
 lj_bcwrite_t lj_bcwrite = NULL;
 
 #ifdef _WIN32
-static const char *LuaJIT_bcwrite_sym = "\x83\xEC\x24\x8B\x4C\x24\x2C\x8B\x54\x24\x30\x8B\x44\x24\x28\x89";
+static const char *LuaJIT_bcwrite_sym = "\x83\xEC\x24\x8B\x44\x24\x2C\x8B\x4C\x24\x28\x89\x44\x24\x10\x8B";
 static const size_t LuaJIT_bcwrite_symlen = 16;
 #else
 static const char *LuaJIT_bcwrite_sym = "@lj_bcwrite";
