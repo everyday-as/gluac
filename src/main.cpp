@@ -12,18 +12,18 @@
 
 #endif
 
-#include <unistd.h>
 #include <symbolfinder.hpp>
 
 #define LUA_PREFIX LuaFunctions.
 lua_All_functions LuaFunctions;
 
-char* g_sInputFilename = nullptr;
-char* g_sOutputFilename = nullptr;
+char *g_sInputFilename = nullptr;
+char *g_sOutputFilename = nullptr;
 bool g_bParseOnly = false;
 bool g_bStripDebug = false;
 
-typedef int(__cdecl *lj_bcwrite_t) (lua_State *L, void *gcproto, lua_Writer, void *data, int strip);
+typedef int(__cdecl *lj_bcwrite_t)(lua_State *L, void *gcproto, lua_Writer, void *data, int strip);
+
 lj_bcwrite_t lj_bcwrite = NULL;
 
 #ifdef _WIN32
@@ -35,133 +35,129 @@ static const size_t LuaJIT_bcwrite_symlen = 0;
 #endif
 
 typedef struct {
-	size_t *len;
-	char **data;
+    size_t *len;
+    char **data;
 } wdata;
 
-int write_dump(lua_State *L, const void* p, size_t sz, void* ud)
-{
-	wdata *wd = (wdata *)ud;
+int write_dump(lua_State *L, const void *p, size_t sz, void *ud) {
+    wdata *wd = (wdata *) ud;
 
-	char *newData = (char *)realloc(*(wd->data), (*(wd->len)) + sz);
+    char *newData = (char *) realloc(*(wd->data), (*(wd->len)) + sz);
 
-	if (newData)
-	{
-		memcpy(newData + (*(wd->len)), p, sz);
-		*(wd->data) = newData;
-		*(wd->len) += sz;
-	}
-	else {
-		free(newData);
-		return 1;
-	}
+    if (newData) {
+        memcpy(newData + (*(wd->len)), p, sz);
+        *(wd->data) = newData;
+        *(wd->len) += sz;
+    } else {
+        free(newData);
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }
 
-int lua_bcwrite(lua_State *L, lua_Writer writer, void *data, bool strip)
-{
-	cTValue *o = L->top - 1;
-	return lj_bcwrite(L, (GCproto *)(mref((&gcval(o)->fn)->l.pc, char) - sizeof(GCproto)), writer, data, strip);
+int lua_bcwrite(lua_State *L, lua_Writer writer, void *data, bool strip) {
+    cTValue * o = L->top - 1;
+    return lj_bcwrite(L, (GCproto *) (mref((&gcval(o)->fn)->l.pc, char) - sizeof(GCproto)), writer, data, strip);
 }
 
-bool load_lua_shared()
-{
-	#ifdef _WIN32
-	HMODULE module = LoadLibrary("lua_shared.dll");
+bool load_lua_shared() {
+#ifdef _WIN32
+    HMODULE module = LoadLibrary("lua_shared.dll");
 
-	if (module == nullptr) {
-		fprintf(stderr, "could not find lua_shared\n");
-		return false;
-	}
-	#else
-	void* module = dlopen("lua_shared_srv.so", RTLD_LAZY);
+    if (module == nullptr) {
+        fprintf(stderr, "could not find lua_shared\n");
+        return false;
+    }
+#else
+    void *module = dlopen("lua_shared_srv.so", RTLD_LAZY);
 
-	if (module == nullptr) {
-		fprintf(stderr, "%s\n", dlerror());
-		return false;
-	}
+    if (module == nullptr) {
+        fprintf(stderr, "%s\n", dlerror());
+        return false;
+    }
 
-	#endif
+#endif
 
-	SymbolFinder symfinder;
-	lj_bcwrite = reinterpret_cast<lj_bcwrite_t>(symfinder.Resolve(module, LuaJIT_bcwrite_sym, LuaJIT_bcwrite_symlen));
-	
-	if (lj_bcwrite == nullptr) {
-		fprintf(stderr, "failed to resolve lj_bcwrite\n");
-		return false;
-	}
+    SymbolFinder symfinder;
+    lj_bcwrite = reinterpret_cast<lj_bcwrite_t>(symfinder.Resolve(module, LuaJIT_bcwrite_sym, LuaJIT_bcwrite_symlen));
 
-	return luaL_loadfunctions(module, &LuaFunctions, sizeof(LuaFunctions));
+    if (lj_bcwrite == nullptr) {
+        fprintf(stderr, "failed to resolve lj_bcwrite\n");
+        return false;
+    }
+
+    return luaL_loadfunctions(module, &LuaFunctions, sizeof(LuaFunctions));
 }
 
-static int lua_main(lua_State* L)
-{
-	// load our Lua file as a chunk on the stack (if filename is NULL it loads from stdin)
-	if (luaL_loadfile(L, g_sInputFilename) != 0) {
-		fprintf(stderr, "%s\n", lua_tostring(L, -1));
-		return 0;
-	}
+static int lua_main(lua_State *L) {
+    // load our Lua file as a chunk on the stack (if filename is NULL it loads from stdin)
+    if (luaL_loadfile(L, g_sInputFilename) != 0) {
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+        return 0;
+    }
 
-	// return early if we only want parsing
-	if (g_bParseOnly) {
-		return 0;
-	}
+    // return early if we only want parsing
+    if (g_bParseOnly) {
+        return 0;
+    }
 
-	char* bytecode = 0L;
-	size_t len = 0;
-	wdata wd = { &len, &bytecode };
+    char *bytecode = 0L;
+    size_t len = 0;
+    wdata wd = {&len, &bytecode};
 
-	if (lua_bcwrite(L, write_dump, &wd, g_bStripDebug))
-	{
-		fprintf(stderr, "failed to dump bytecode\n");
-		return 0;
-	}
+    if (lua_bcwrite(L, write_dump, &wd, g_bStripDebug)) {
+        fprintf(stderr, "failed to dump bytecode\n");
+        return 0;
+    }
 
-	// output bytecode to stdout
-	fwrite(bytecode, len, 1, stdout);
-	fflush(stdout);
-	
-	return 0;
+    // output bytecode to stdout
+    fwrite(bytecode, len, 1, stdout);
+    fflush(stdout);
+
+    return 0;
 }
 
-int main(int argc, char* argv[])
-{
-	int opt;
+int main(int argc, char *argv[]) {
+    int opt = 0;
     while ((opt = getopt(argc, argv, "ps")) != -1) {
         switch (opt) {
-        case 'p': g_bParseOnly = true; break;
-        case 's': g_bStripDebug = true; break;
-        default:
-			printf("USAGE: gluac [input] [output] [-p] [-s]\n");
-			printf("-p: Parse only, doesn't dump bytecode\n");
-			printf("-s: Strip debug information\n");
-            return 1;
+            case 'p':
+                g_bParseOnly = true;
+                break;
+            case 's':
+                g_bStripDebug = true;
+                break;
+            default:
+                printf("USAGE: gluac [input] [output] [-p] [-s]\n");
+                printf("-p: Parse only, doesn't dump bytecode\n");
+                printf("-s: Strip debug information\n");
+                return 1;
         }
     }
 
     if (optind < argc) {
-    	g_sInputFilename = argv[optind];
+        g_sInputFilename = argv[optind];
     }
 
-	if (!load_lua_shared()) {
-		fprintf(stderr, "error loading lua_shared\n");
-		return 1;
-	}
+    if (!load_lua_shared()) {
+        fprintf(stderr, "error loading lua_shared\n");
+        return 1;
+    }
 
-	lua_State* L = lua_open();
-	luaL_openlibs(L);
-	if (L == nullptr) {
-		fprintf(stderr, "cannot create lua state: not enough memory.\n");
-		return 1;
-	}
+    lua_State *L = lua_open();
+    luaL_openlibs(L);
+    if (L == nullptr) {
+        fprintf(stderr, "cannot create lua state: not enough memory.\n");
+        return 1;
+    }
 
-	if (lua_cpcall(L, lua_main, nullptr) != 0) {
-		fprintf(stderr, "lua_cpcall: %s\n", lua_tostring(L, -1));
-		lua_close(L);
-		return 1;
-	}
+    if (lua_cpcall(L, lua_main, nullptr) != 0) {
+        fprintf(stderr, "lua_cpcall: %s\n", lua_tostring(L, -1));
+        lua_close(L);
+        return 1;
+    }
 
-	lua_close(L);
-	return 0;
+    lua_close(L);
+    return 0;
 }
