@@ -13,7 +13,7 @@ Depends on [danielga/scanning](https://github.com/danielga/scanning) which is in
 And [premake5](https://premake.github.io/) is used to create project files.
 
 `lua_dyn.c` & `lua_dyn.h` are generated using `tools/lua_dyn_export_h.lua` alongside the
-source code for the target version of LuaJIT used in GMod (currently `luajit-2.0.3`)
+source code for the target version of LuaJIT used in GMod (currently `luajit-2.0.4`)
 
 Running the program requires the libraries from GMod to be in the directory with them:
 
