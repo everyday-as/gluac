@@ -3,8 +3,13 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include "io.h"
+#include "getopt_win.h"
 #else
+
 #include <dlfcn.h>
+#include "unistd.h"
+
 #endif
 
 #include <unistd.h>

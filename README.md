@@ -17,7 +17,7 @@ source code for the target version of LuaJIT used in GMod (currently `luajit-2.0
 
 Running the program requires the libraries from GMod to be in the directory with them:
 
-- Windows: `lua_shared.dll` and `tier0.dll`
+- Windows: `lua_shared.dll`, `tier0.dll` and `vstdlib.dll`
 - Linux: `lua_shared_srv.so`, `libsteam.so`, `libsteam_api.so`, `libtier0_srv.so` `libvstdlib_srv.so`
 
 On Linux you need to export `LD_LIBRARY_PATH` to the directory in order to load the shared libraries

@@ -1,4 +1,5 @@
-bin
-project
+bin/
+project/
 premake5.exe
 premake5
+.idea/
