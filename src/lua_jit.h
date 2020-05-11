@@ -15,10 +15,11 @@
 #include <stdlib.h>
 
 /* The C offsetof macro is being overriden by C++ */
-#pragma warning (push)
-#pragma warning (disable : 4005)
+#ifdef offsetof
+#undef offsetof
+#endif
+
 #define offsetof(s,m) ((size_t)&(((s*)0)->m))
-#pragma warning (pop)
 
 /* Various VM limits. */
 #define LJ_MAX_MEM  0x7fffff00  /* Max. total memory allocation. */
