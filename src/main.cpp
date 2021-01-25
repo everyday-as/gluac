@@ -4,6 +4,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include "io.h"
+#include <fcntl.h>
 #include "getopt_win.h"
 #else
 
@@ -119,6 +120,11 @@ static int lua_main(lua_State *L) {
 }
 
 int main(int argc, char *argv[]) {
+    #ifdef _WIN32
+      setmode(fileno(stdout),O_BINARY);
+      setmode(fileno(stdin),O_BINARY);
+    #endif
+    
     int opt = 0;
     while ((opt = getopt(argc, argv, "ps")) != -1) {
         switch (opt) {
